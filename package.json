@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "docx": "^9.7.1",
+    "file-saver": "^2.0.5",
     "firebase": "^12.15.0",
     "firebase-admin": "^11.11.1",
     "html2pdf.js": "^0.14.0",
@@ -21,7 +23,9 @@
     "react-markdown": "^10.1.0",
     "react-webcam": "^7.2.0",
     "rehype-katex": "^7.0.1",
-    "remark-math": "^6.0.0"
+    "remark-docx": "^0.3.29",
+    "remark-math": "^6.0.0",
+    "remark-parse": "^11.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.17",

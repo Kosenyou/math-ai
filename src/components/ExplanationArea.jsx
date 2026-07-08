@@ -2,20 +2,51 @@ import { useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
-import { Download, BookOpen, AlertCircle } from 'lucide-react';
+import { unified } from 'unified';
+import remarkParse from 'remark-parse';
+import remarkMathPlugin from 'remark-math';
+import remarkDocx from 'remark-docx';
+import { saveAs } from 'file-saver';
+import { Download, BookOpen, AlertCircle, FileText } from 'lucide-react';
 
 export default function ExplanationArea({ explanation, error, title = 'AI 解説' }) {
   const contentRef = useRef(null);
-  const [isExporting, setIsExporting] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [isExportingWord, setIsExportingWord] = useState(false);
 
   const handleExportPDF = () => {
-    setIsExporting(true);
+    setIsExportingPDF(true);
     
     // 印刷ダイアログを開く直前に少し待つ（状態反映のため）
     setTimeout(() => {
       window.print();
-      setIsExporting(false);
+      setIsExportingPDF(false);
     }, 100);
+  };
+
+  const handleExportWord = async () => {
+    if (!explanation) return;
+    setIsExportingWord(true);
+    
+    try {
+      const processor = unified()
+        .use(remarkParse)
+        .use(remarkMathPlugin)
+        .use(remarkDocx, { output: 'buffer' });
+      
+      const file = await processor.process(explanation);
+      const blob = new Blob([file.result], { 
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+      });
+      
+      const filename = isQuestionMode ? 'math_problem.docx' : 'math_explanation.docx';
+      saveAs(blob, filename);
+    } catch (err) {
+      console.error('Word export failed:', err);
+      alert('Word形式でのエクスポートに失敗しました。');
+    } finally {
+      setIsExportingWord(false);
+    }
   };
 
   // 作問モードの場合、'---'で分割してページを構成する
@@ -36,14 +67,24 @@ export default function ExplanationArea({ explanation, error, title = 'AI 解説
           <BookOpen size={20} /> {title}
         </h2>
         {explanation && (
-          <button 
-            className="btn-secondary" 
-            onClick={handleExportPDF}
-            disabled={isExporting}
-            style={{ padding: '8px 16px' }}
-          >
-            <Download size={18} /> {isExporting ? '生成中...' : 'PDFで保存'}
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button 
+              className="btn-secondary" 
+              onClick={handleExportWord}
+              disabled={isExportingWord || isExportingPDF}
+              style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <FileText size={18} /> {isExportingWord ? '生成中...' : 'Wordで保存'}
+            </button>
+            <button 
+              className="btn-secondary" 
+              onClick={handleExportPDF}
+              disabled={isExportingWord || isExportingPDF}
+              style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Download size={18} /> {isExportingPDF ? '生成中...' : 'PDFで保存'}
+            </button>
+          </div>
         )}
       </div>
 
