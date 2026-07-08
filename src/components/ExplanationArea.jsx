@@ -78,7 +78,19 @@ export default function ExplanationArea({ explanation, error, title = 'AI 解説
                   </div>
                 </div>
                 
-
+                {/* 2ページ目の完全な白紙（計算用紙）- 条件付きで表示 */}
+                {/* 印刷ダイアログの機能に任せるため、計算用紙は常に挿入するか、不要ならCSSで消す */}
+                <div 
+                  className="print-only calc-page" 
+                  style={{ 
+                    pageBreakAfter: 'always', 
+                    padding: '20px',
+                    color: '#999',
+                    height: '80vh'
+                  }}
+                >
+                  [計算用紙]
+                </div>
 
                 {/* 3ページ目以降に解答解説 */}
                 <div style={{ paddingTop: '20px' }}>
