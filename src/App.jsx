@@ -4,6 +4,7 @@ import MathInputArea from './components/MathInputArea';
 import QuestionCreationInput from './components/QuestionCreationInput';
 import ExplanationArea from './components/ExplanationArea';
 import AdBanner from './components/AdBanner';
+import PricingModal from './components/PricingModal';
 import { generateMathExplanation, generateMathQuestion } from './utils/gemini';
 import { BookOpen, Sparkles, LogIn } from 'lucide-react';
 import 'katex/dist/katex.min.css';
@@ -19,6 +20,7 @@ function App() {
   const [resultText, setResultText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
 
   // Auth & User State
   const [user, setUser] = useState(null);
@@ -85,18 +87,8 @@ function App() {
     }
   };
 
-  const handleAddTestTickets = async () => {
-    if (!user) return;
-    try {
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        tickets: increment(10)
-      });
-      alert('【テスト環境特典】\n無料のテストチケットを10枚追加しました！');
-    } catch (err) {
-      console.error('チケット追加エラー:', err);
-      alert('チケットの追加に失敗しました。');
-    }
+  const handleAddTestTickets = () => {
+    setIsPricingModalOpen(true);
   };
 
   const handleGenerateExplanation = async (text, imageBase64) => {
@@ -242,6 +234,14 @@ function App() {
       <footer style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '1rem 0', fontSize: '0.875rem' }}>
         <p>Built with React, Vite, and Gemini API</p>
       </footer>
+
+      {/* Pricing Modal */}
+      {isPricingModalOpen && (
+        <PricingModal 
+          user={user} 
+          onClose={() => setIsPricingModalOpen(false)} 
+        />
+      )}
     </div>
   );
 }
