@@ -1,17 +1,19 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import admin from 'firebase-admin';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
 // Vercel Serverless Functionの実行時間制限を延長 (Hobbyプランの最大値: 60秒)
 export const maxDuration = 60;
 
 // Vercel環境でFirebase Adminを初期化する
-if (!admin.apps.length) {
+if (getApps().length === 0) {
   try {
     // ユーザーに設定してもらう環境変数
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
     if (serviceAccount.project_id) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
+      initializeApp({
+        credential: cert(serviceAccount)
       });
     }
   } catch (error) {
@@ -39,11 +41,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    if (!admin.apps.length) {
+    if (getApps().length === 0) {
       throw new Error('サーバー側のFirebase設定が完了していません。');
     }
 
-    const db = admin.firestore();
+    const db = getFirestore();
 
     // 1. 認証トークンの確認 (フロントエンドから送られてきたユーザー情報が本物か検証)
     const authHeader = req.headers.authorization;
@@ -52,7 +54,7 @@ export default async function handler(req, res) {
     }
 
     const idToken = authHeader.split('Bearer ')[1];
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const decodedToken = await getAuth().verifyIdToken(idToken);
     const uid = decodedToken.uid;
 
     // 2. チケット残高の確認
@@ -70,7 +72,7 @@ export default async function handler(req, res) {
 
     // 3. チケットを1枚消費する
     await userRef.update({
-      tickets: admin.firestore.FieldValue.increment(-1)
+      tickets: FieldValue.increment(-1)
     });
 
     // 4. サーバー裏側でGemini APIを叩く
