@@ -3,9 +3,6 @@ import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 
-// Vercel Serverless Functionの実行時間制限を延長 (Hobbyプランの最大値: 60秒)
-export const maxDuration = 60;
-
 let initError = null;
 
 // Vercel環境でFirebase Adminを初期化する
@@ -90,7 +87,7 @@ export default async function handler(req, res) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: modelName || "gemini-3.5-flash" });
+    const model = genAI.getGenerativeModel({ model: modelName || "gemini-1.5-flash" });
 
     let prompt = "";
     if (mode === 'explanation') {
