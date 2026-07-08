@@ -30,12 +30,17 @@ export default function ExplanationArea({ explanation, error, title = 'AI 解説
     setIsExportingWord(true);
     
     try {
+      let exportText = explanation;
+      if (isQuestionMode) {
+        exportText = `${problemPart}\n\n**[解答欄]**\n\n---\n\n**[計算用紙]**\n\n---\n\n${answerPart}`;
+      }
+
       const processor = unified()
         .use(remarkParse)
         .use(remarkMathPlugin)
         .use(remarkDocx, { plugins: [latexPlugin()] });
       
-      const file = await processor.process(explanation);
+      const file = await processor.process(exportText);
       const arrayBuffer = await file.result;
       const blob = new Blob([arrayBuffer], { 
         type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
