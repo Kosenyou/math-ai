@@ -1,12 +1,10 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-import { getAuth } from 'firebase-admin/auth';
+import admin from 'firebase-admin';
 
 let initError = null;
 
 // Vercel環境でFirebase Adminを初期化する
-if (getApps().length === 0) {
+if (!admin.apps.length) {
   try {
     // ユーザーに設定してもらう環境変数
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
@@ -15,8 +13,8 @@ if (getApps().length === 0) {
         // Vercelの環境変数で改行がエスケープされている場合への対応
         serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
       }
-      initializeApp({
-        credential: cert(serviceAccount)
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
       });
     }
   } catch (error) {
@@ -44,7 +42,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     return res.status(200).json({ 
       status: 'ok', 
-      firebaseAdmin: typeof getApps,
+      firebaseAdmin: typeof admin.apps,
       initError: initError || 'none'
     });
   }
@@ -54,11 +52,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    if (getApps().length === 0) {
+    if (!admin.apps.length) {
       throw new Error(`サーバー側のFirebase設定が完了していません。詳細: ${initError || '設定が空です'}`);
     }
 
-    const db = getFirestore();
+    const db = admin.firestore();
 
     // 1. 認証トークンの確認 (フロントエンドから送られてきたユーザー情報が本物か検証)
     const authHeader = req.headers.authorization;
@@ -67,7 +65,7 @@ export default async function handler(req, res) {
     }
 
     const idToken = authHeader.split('Bearer ')[1];
-    const decodedToken = await getAuth().verifyIdToken(idToken);
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
     const uid = decodedToken.uid;
 
     // 2. チケット残高の確認
@@ -85,7 +83,7 @@ export default async function handler(req, res) {
 
     // 3. チケットを1枚消費する
     await userRef.update({
-      tickets: FieldValue.increment(-1)
+      tickets: admin.firestore.FieldValue.increment(-1)
     });
 
     // 4. サーバー裏側でGemini APIを叩く
