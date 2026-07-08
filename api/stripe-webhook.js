@@ -1,11 +1,6 @@
 import Stripe from 'stripe';
 import admin from 'firebase-admin';
 
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-});
-
 // Initialize Firebase Admin (Only once)
 if (!admin.apps.length) {
   try {
@@ -49,11 +44,19 @@ export default async function handler(req, res) {
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+    return res.status(500).send('Stripe API keys are missing in Vercel Environment Variables.');
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16',
+  });
+
   let event;
 
   try {
     // Stripeからの正しいリクエストか検証する
-    event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
+    event = stripe.webhooks.constructEvent(buf, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
     console.error(`Webhook Error: ${err.message}`);
     return res.status(400).send(`Webhook Error: ${err.message}`);

@@ -1,9 +1,5 @@
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16', // 最新のAPIバージョンに適宜変更可能
-});
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -15,7 +11,17 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'ユーザーIDが必要です' });
   }
 
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return res.status(500).json({ 
+      error: 'Vercelの環境変数に STRIPE_SECRET_KEY が設定されていないか、再デプロイされていません。' 
+    });
+  }
+
   try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2023-10-16',
+    });
+
     // 実際のアプリではここで「URL」をVercelの環境変数から動的に取得します
     // 今回はテスト用のためハードコードまたは簡易的な判定を使用します
     const protocol = req.headers['x-forwarded-proto'] || 'https';
