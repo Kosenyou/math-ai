@@ -51,6 +51,9 @@ export default async function handler(req, res) {
     res.status(200).json({ sessionId: session.id });
   } catch (err) {
     console.error('Error creating checkout session:', err);
-    res.status(500).json({ error: '決済セッションの作成中にエラーが発生しました。' });
+    res.status(500).json({ 
+      error: '決済セッションの作成中にエラーが発生しました。', 
+      details: err.message || err.toString()
+    });
   }
 }

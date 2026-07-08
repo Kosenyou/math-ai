@@ -27,7 +27,12 @@ export default function PricingModal({ onClose, user }) {
       });
 
       if (!response.ok) {
-        throw new Error('決済セッションの作成に失敗しました');
+        let errorMsg = '決済セッションの作成に失敗しました';
+        try {
+          const errorData = await response.json();
+          if (errorData.details) errorMsg += `\n詳細: ${errorData.details}`;
+        } catch (e) {}
+        throw new Error(errorMsg);
       }
 
       const { sessionId } = await response.json();
@@ -44,7 +49,7 @@ export default function PricingModal({ onClose, user }) {
       }
     } catch (err) {
       console.error('Purchase error:', err);
-      alert('エラーが発生しました。時間を置いて再度お試しください。');
+      alert(err.message || 'エラーが発生しました。時間を置いて再度お試しください。');
     } finally {
       setIsLoading(false);
     }
