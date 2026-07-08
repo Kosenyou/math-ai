@@ -1,62 +1,39 @@
 import { useState, useEffect } from 'react';
-import { KeyRound, Check, Calculator } from 'lucide-react';
+import { KeyRound, Check, Calculator, LogOut, Ticket } from 'lucide-react';
 
-export default function Header({ apiKey, setApiKey, availableModels, selectedModel, setSelectedModel }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [tempKey, setTempKey] = useState(apiKey);
-
-  useEffect(() => {
-    setTempKey(apiKey);
-  }, [apiKey]);
-
-  const handleSave = () => {
-    setApiKey(tempKey);
-    setIsEditing(false);
-  };
-
+export default function Header({ availableModels, selectedModel, setSelectedModel, user, tickets, onLogout }) {
   return (
-    <header className="header">
-      <div className="header-title">
+    <header className="app-header no-print">
+      <div className="logo">
         <Calculator size={32} color="#60a5fa" />
         <h1>Math AI Explainer</h1>
       </div>
-      
-      <div className="api-key-section" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-        {availableModels && availableModels.length > 0 && (
-          <select 
-            className="input-field" 
-            style={{ width: 'auto', padding: '8px 12px', cursor: 'pointer' }}
-            value={selectedModel}
-            onChange={(e) => setSelectedModel(e.target.value)}
-          >
-            {availableModels.map(model => (
-              <option key={model} value={model} style={{ color: 'black' }}>
-                {model}
-              </option>
-            ))}
-          </select>
-        )}
-        {isEditing ? (
-          <>
-            <input 
-              type="password" 
-              className="input-field" 
-              style={{ width: '250px', padding: '8px 12px' }}
-              value={tempKey}
-              onChange={(e) => setTempKey(e.target.value)}
-              placeholder="Gemini API Key"
-            />
-            <button className="btn-primary" style={{ padding: '8px 12px' }} onClick={handleSave}>
-              <Check size={18} /> 保存
-            </button>
-          </>
-        ) : (
-          <button className="btn-secondary" onClick={() => setIsEditing(true)}>
-            <KeyRound size={18} /> 
-            {apiKey ? 'APIキーを変更' : 'APIキーを設定'}
-          </button>
-        )}
-      </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* ユーザー情報とチケット */}
+          {user && (
+            <div className="user-profile no-print" style={{ display: 'flex', alignItems: 'center', gap: '15px', background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', color: 'var(--accent-color)', fontWeight: 'bold' }}>
+                <Ticket size={18} style={{ marginRight: '6px' }} />
+                <span>{tickets} 回分</span>
+              </div>
+              <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.2)' }}></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <img 
+                  src={user.photoURL || `https://ui-avatars.com/api/?name=${user.email}&background=random`} 
+                  alt="User" 
+                  style={{ width: '28px', height: '28px', borderRadius: '50%' }}
+                />
+                <button 
+                  onClick={onLogout} 
+                  style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  title="ログアウト"
+                >
+                  <LogOut size={18} />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
     </header>
   );
 }

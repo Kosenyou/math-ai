@@ -5,29 +5,88 @@ import QuestionCreationInput from './components/QuestionCreationInput';
 import ExplanationArea from './components/ExplanationArea';
 import AdBanner from './components/AdBanner';
 import { generateMathExplanation, generateMathQuestion, fetchAvailableModels } from './utils/gemini';
-import { BookOpen, Sparkles } from 'lucide-react';
+import { BookOpen, Sparkles, LogIn } from 'lucide-react';
 import 'katex/dist/katex.min.css';
+import './App.css';
+
+// Firebase imports
+import { auth, signInWithGoogle, logOut, db } from './utils/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 function App() {
-  const [appMode, setAppMode] = useState('explain'); // 'explain' or 'create'
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
+  const [appMode, setAppMode] = useState('question'); // 'explain' or 'question'
   const [availableModels, setAvailableModels] = useState([]);
   const [selectedModel, setSelectedModel] = useState('');
   const [resultText, setResultText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // ローカルストレージからAPIキーとモデルを読み込む
+  // Auth & User State
+  const [user, setUser] = useState(null);
+  const [tickets, setTickets] = useState(0);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
+  // 認証状態の監視
   useEffect(() => {
-    const savedKey = localStorage.getItem('math_explainer_api_key');
-    if (savedKey) {
-      setApiKey(savedKey);
-    }
-    const savedModel = localStorage.getItem('math_explainer_selected_model');
-    if (savedModel) {
-      setSelectedModel(savedModel);
-    }
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (!currentUser) {
+        setTickets(0);
+        setIsAuthLoading(false);
+      }
+    });
+
+    return () => unsubscribeAuth();
   }, []);
+
+  // ログイン中のユーザーのチケット数をリアルタイムで監視
+  useEffect(() => {
+    let unsubscribeDb;
+    if (user) {
+      const userRef = doc(db, 'users', user.uid);
+      
+      unsubscribeDb = onSnapshot(userRef, async (docSnap) => {
+        if (docSnap.exists()) {
+          setTickets(docSnap.data().tickets || 0);
+        } else {
+          // もしユーザーのデータが存在しない場合（データベース作成前にログインしてしまった場合など）
+          // ここで初期データを作成する
+          try {
+            const { setDoc } = await import('firebase/firestore');
+            await setDoc(userRef, {
+              email: user.email,
+              displayName: user.displayName,
+              tickets: 3,
+              createdAt: new Date()
+            });
+            setTickets(3);
+          } catch (e) {
+            console.error("Failed to initialize user data:", e);
+            setError(`データベースの作成に失敗しました: ${e.message}`);
+          }
+        }
+        setIsAuthLoading(false);
+      }, (err) => {
+        console.error("Failed to fetch user data:", err);
+        setError(`データベースの読み込みに失敗しました: ${err.message}`);
+        setIsAuthLoading(false);
+      });
+    }
+    return () => {
+      if (unsubscribeDb) unsubscribeDb();
+    };
+  }, [user]);
+
+  const handleLogin = async () => {
+    try {
+      setError('');
+      await signInWithGoogle();
+    } catch (err) {
+      setError(`ログイン処理エラー: ${err.message}`);
+    }
+  };
 
   // APIキーが設定されたらモデル一覧を取得する
   useEffect(() => {
@@ -36,11 +95,8 @@ function App() {
       const models = await fetchAvailableModels(apiKey);
       setAvailableModels(models);
       
-      // 保存されたモデルがない、または利用可能でない場合はデフォルトを設定
       if (models.length > 0) {
-        // 現在の選択がリストにあるか確認
         if (!selectedModel || !models.includes(selectedModel)) {
-          // デフォルトでgemini-1.5-proか、最初にあるものを選択
           const defaultModel = models.find(m => m.includes('1.5-pro')) || models[0];
           setSelectedModel(defaultModel);
           localStorage.setItem('math_explainer_selected_model', defaultModel);
@@ -50,10 +106,9 @@ function App() {
     getModels();
   }, [apiKey]);
 
-  // APIキーが変更されたらローカルストレージに保存する
   const handleSetApiKey = (key) => {
     setApiKey(key);
-    localStorage.setItem('math_explainer_api_key', key);
+    localStorage.setItem('gemini_api_key', key);
   };
 
   const handleSetSelectedModel = (model) => {
@@ -61,45 +116,88 @@ function App() {
     localStorage.setItem('math_explainer_selected_model', model);
   };
 
-  const handleGenerateExplanation = async (textInput, imageBase64) => {
-    if (!apiKey) {
-      setError('APIキーを設定してください。画面右上のボタンから設定できます。');
+  const handleGenerateExplanation = async (text, imageBase64) => {
+    if (!text && !imageBase64) {
+      setError('テキストを入力するか、画像をアップロードしてください。');
       return;
     }
 
     setIsLoading(true);
     setError('');
-    
+    setResultText('');
+
     try {
-      const result = await generateMathExplanation(apiKey, selectedModel, textInput, imageBase64);
+      // APIキーはサーバー側で管理するため不要になりました
+      const result = await generateMathExplanation(null, selectedModel, text, imageBase64);
       setResultText(result);
     } catch (err) {
-      console.error(err);
-      setError('解説の生成中にエラーが発生しました。APIキーが正しいか、ネットワーク接続を確認してください。\n詳細: ' + err.message);
+      setError(err.message || '解説の生成に失敗しました。');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGenerateQuestion = async (promptText) => {
-    if (!apiKey) {
-      setError('APIキーを設定してください。画面右上のボタンから設定できます。');
-      return;
-    }
-
+  const handleGenerateQuestion = async (text) => {
     setIsLoading(true);
     setError('');
-    
+    setResultText('');
+
     try {
-      const result = await generateMathQuestion(apiKey, selectedModel, promptText);
+      const result = await generateMathQuestion(null, selectedModel, text);
       setResultText(result);
     } catch (err) {
-      console.error(err);
-      setError('問題の生成中にエラーが発生しました。APIキーが正しいか、ネットワーク接続を確認してください。\n詳細: ' + err.message);
+      setError(err.message || '問題の生成に失敗しました。');
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (resultText && !isLoading) {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+  }, [resultText, isLoading]);
+
+  if (isAuthLoading) {
+    return (
+      <div className="app-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <p style={{ color: 'var(--text-secondary)' }}>読み込み中...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="app-container">
+        <Header />
+        <main className="main-content" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          <div className="glass-panel" style={{ textAlign: 'center', padding: '3rem 2rem', maxWidth: '400px', width: '100%' }}>
+            <div style={{ marginBottom: '2rem' }}>
+              <Sparkles size={48} color="var(--primary-color)" style={{ margin: '0 auto', marginBottom: '1rem' }} />
+              <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>AI 数学アシスタント</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                分からない数式をAIがステップバイステップで解説。<br/>
+                ログインすると初回限定で無料チケットが3枚もらえます！
+              </p>
+            </div>
+            {error && (
+              <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '10px', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                {error}
+              </div>
+            )}
+            <button 
+              onClick={handleLogin}
+              className="btn-primary" 
+              style={{ width: '100%', justifyContent: 'center', padding: '0.8rem' }}
+            >
+              <LogIn size={20} style={{ marginRight: '8px' }} />
+              Googleでログインして始める
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">
@@ -109,31 +207,34 @@ function App() {
         availableModels={availableModels}
         selectedModel={selectedModel}
         setSelectedModel={handleSetSelectedModel}
+        user={user} 
+        tickets={tickets} 
+        onLogout={logOut} 
       />
       
       {/* モード切り替えタブ */}
-      <div className="no-print" style={{ display: 'flex', gap: '8px', marginBottom: '1rem', justifyContent: 'center' }}>
+      <div className="tabs-container no-print" style={{ display: 'flex', gap: '8px', marginBottom: '1rem', justifyContent: 'center' }}>
         <button 
-          className={appMode === 'explain' ? 'btn-primary' : 'btn-secondary'} 
-          style={{ width: '200px', justifyContent: 'center' }}
+          className={`tab-btn ${appMode === 'question' ? 'active' : ''}`}
+          onClick={() => {
+            setAppMode('question');
+            setResultText('');
+            setError('');
+          }}
+        >
+          <Sparkles size={18} style={{ marginRight: '6px' }} />
+          作問モード
+        </button>
+        <button 
+          className={`tab-btn ${appMode === 'explain' ? 'active' : ''}`}
           onClick={() => {
             setAppMode('explain');
             setResultText('');
             setError('');
           }}
         >
-          <BookOpen size={18} /> 解説モード
-        </button>
-        <button 
-          className={appMode === 'create' ? 'btn-primary' : 'btn-secondary'} 
-          style={{ width: '200px', justifyContent: 'center' }}
-          onClick={() => {
-            setAppMode('create');
-            setResultText('');
-            setError('');
-          }}
-        >
-          <Sparkles size={18} /> 作問モード
+          <BookOpen size={18} style={{ marginRight: '6px' }} />
+          解説モード
         </button>
       </div>
 
