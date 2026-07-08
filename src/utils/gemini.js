@@ -18,7 +18,7 @@ export const fetchAvailableModels = async (apiKey) => {
   }
 };
 
-export const generateMathExplanation = async (apiKey, modelName, textInput, imageBase64) => {
+export const generateMathExplanation = async (textInput, imageBase64) => {
   const user = auth.currentUser;
   if (!user) {
     throw new Error('ログインしていません。');
@@ -35,7 +35,6 @@ export const generateMathExplanation = async (apiKey, modelName, textInput, imag
     body: JSON.stringify({ 
       textInput, 
       imageBase64, 
-      modelName, 
       mode: 'explanation' 
     })
   });
@@ -49,7 +48,7 @@ export const generateMathExplanation = async (apiKey, modelName, textInput, imag
   return data.explanation;
 };
 
-export const generateMathQuestion = async (apiKey, modelName, promptText) => {
+export const generateMathQuestion = async (promptText) => {
   const user = auth.currentUser;
   if (!user) {
     throw new Error('ログインしていません。');
@@ -65,7 +64,6 @@ export const generateMathQuestion = async (apiKey, modelName, promptText) => {
     },
     body: JSON.stringify({ 
       textInput: promptText, 
-      modelName, 
       mode: 'question' 
     })
   });
