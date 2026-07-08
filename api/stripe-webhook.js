@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import admin from 'firebase-admin';
+import { buffer } from 'micro';
 
 // Initialize Firebase Admin (Only once)
 if (!admin.apps.length) {
@@ -32,14 +33,7 @@ export default async function handler(req, res) {
     return res.status(405).send('Method Not Allowed');
   }
 
-  const rawBody = await new Promise((resolve, reject) => {
-    let body = '';
-    req.on('data', chunk => {
-      body += chunk.toString();
-    });
-    req.on('end', () => resolve(body));
-    req.on('error', reject);
-  });
+  const rawBody = await buffer(req);
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 

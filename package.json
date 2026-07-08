@@ -19,6 +19,7 @@
     "html2pdf.js": "^0.14.0",
     "katex": "^0.17.0",
     "lucide-react": "^1.23.0",
+    "micro": "^10.0.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-markdown": "^10.1.0",
