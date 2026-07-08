@@ -12,7 +12,7 @@ import './App.css';
 // Firebase imports
 import { auth, signInWithGoogle, logOut, db } from './utils/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, increment } from 'firebase/firestore';
 
 function App() {
   const [appMode, setAppMode] = useState('question'); // 'explain' or 'question'
@@ -82,6 +82,20 @@ function App() {
       await signInWithGoogle();
     } catch (err) {
       setError(`ログイン処理エラー: ${err.message}`);
+    }
+  };
+
+  const handleAddTestTickets = async () => {
+    if (!user) return;
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, {
+        tickets: increment(10)
+      });
+      alert('【テスト環境特典】\n無料のテストチケットを10枚追加しました！');
+    } catch (err) {
+      console.error('チケット追加エラー:', err);
+      alert('チケットの追加に失敗しました。');
     }
   };
 
@@ -174,6 +188,7 @@ function App() {
         user={user} 
         tickets={tickets} 
         onLogout={logOut} 
+        onAddTickets={handleAddTestTickets}
       />
       
       {/* モード切り替えタブ */}

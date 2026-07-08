@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { KeyRound, Check, Calculator, LogOut, Ticket } from 'lucide-react';
+import { KeyRound, Check, Calculator, LogOut, Ticket, PlusCircle } from 'lucide-react';
 
-export default function Header({ availableModels, selectedModel, setSelectedModel, user, tickets, onLogout }) {
+export default function Header({ availableModels, selectedModel, setSelectedModel, user, tickets, onLogout, onAddTickets }) {
   return (
     <header className="app-header no-print">
       <div className="logo">
@@ -14,7 +14,14 @@ export default function Header({ availableModels, selectedModel, setSelectedMode
             <div className="user-profile no-print" style={{ display: 'flex', alignItems: 'center', gap: '15px', background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', color: 'var(--accent-color)', fontWeight: 'bold' }}>
                 <Ticket size={18} style={{ marginRight: '6px' }} />
-                <span>{tickets} 回分</span>
+                <span style={{ marginRight: '8px' }}>{tickets} 回分</span>
+                <button 
+                  onClick={onAddTickets}
+                  style={{ background: 'var(--accent-color)', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  title="テストチケットを追加"
+                >
+                  <PlusCircle size={16} />
+                </button>
               </div>
               <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.2)' }}></div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
