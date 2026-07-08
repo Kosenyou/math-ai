@@ -35,17 +35,12 @@ export default function PricingModal({ onClose, user }) {
         throw new Error(errorMsg);
       }
 
-      const { sessionId } = await response.json();
+      const { url } = await response.json();
       
-      // Stripeのチェックアウト画面へリダイレクト
-      const stripe = await stripePromise;
-      const { error } = await stripe.redirectToCheckout({
-        sessionId,
-      });
-
-      if (error) {
-        console.error('Stripe redirect error:', error);
-        alert(error.message);
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error('決済URLの取得に失敗しました');
       }
     } catch (err) {
       console.error('Purchase error:', err);

@@ -54,7 +54,7 @@ export default async function handler(req, res) {
       }
     });
 
-    res.status(200).json({ sessionId: session.id });
+    res.status(200).json({ sessionId: session.id, url: session.url });
   } catch (err) {
     console.error('Error creating checkout session:', err);
     res.status(500).json({ 
