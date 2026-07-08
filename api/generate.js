@@ -40,6 +40,15 @@ export default async function handler(req, res) {
     return;
   }
 
+  // 動作確認（デバッグ）用のエンドポイント
+  if (req.method === 'GET') {
+    return res.status(200).json({ 
+      status: 'ok', 
+      firebaseAdmin: typeof getApps,
+      initError: initError || 'none'
+    });
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
