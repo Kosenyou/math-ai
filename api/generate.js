@@ -6,18 +6,25 @@ import { getAuth } from 'firebase-admin/auth';
 // Vercel Serverless Functionの実行時間制限を延長 (Hobbyプランの最大値: 60秒)
 export const maxDuration = 60;
 
+let initError = null;
+
 // Vercel環境でFirebase Adminを初期化する
 if (getApps().length === 0) {
   try {
     // ユーザーに設定してもらう環境変数
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
     if (serviceAccount.project_id) {
+      if (serviceAccount.private_key) {
+        // Vercelの環境変数で改行がエスケープされている場合への対応
+        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+      }
       initializeApp({
         credential: cert(serviceAccount)
       });
     }
   } catch (error) {
     console.error('Firebase Admin initialization error', error);
+    initError = error.message;
   }
 }
 
@@ -42,7 +49,7 @@ export default async function handler(req, res) {
 
   try {
     if (getApps().length === 0) {
-      throw new Error('サーバー側のFirebase設定が完了していません。');
+      throw new Error(`サーバー側のFirebase設定が完了していません。詳細: ${initError || '設定が空です'}`);
     }
 
     const db = getFirestore();
