@@ -1,6 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import admin from 'firebase-admin';
 
+// Vercel Serverless Functionの実行時間制限を延長 (Hobbyプランの最大値: 60秒)
+export const maxDuration = 60;
+
 // Vercel環境でFirebase Adminを初期化する
 if (!admin.apps.length) {
   try {
@@ -47,7 +50,7 @@ export default async function handler(req, res) {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ error: '認証エラー: ログインしていません' });
     }
-    
+
     const idToken = authHeader.split('Bearer ')[1];
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     const uid = decodedToken.uid;
@@ -55,11 +58,11 @@ export default async function handler(req, res) {
     // 2. チケット残高の確認
     const userRef = db.collection('users').doc(uid);
     const userDoc = await userRef.get();
-    
+
     if (!userDoc.exists) {
       return res.status(400).json({ error: 'ユーザーデータが見つかりません' });
     }
-    
+
     const tickets = userDoc.data().tickets || 0;
     if (tickets <= 0) {
       return res.status(403).json({ error: 'チケットが不足しています。購入してください。' });
@@ -79,7 +82,7 @@ export default async function handler(req, res) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: modelName || "gemini-1.5-flash" });
-    
+
     let prompt = "";
     if (mode === 'explanation') {
       prompt = `あなたはプロの数学教師です。以下の数式や数学の概念について、初心者にも非常に分かりやすく、ステップバイステップで解説してください。
@@ -110,15 +113,15 @@ ${textInput || "ランダムな数学の問題"}`;
     } else {
       return res.status(400).json({ error: '無効なモードです。' });
     }
-    
+
     let result;
     if (imageBase64) {
       const parts = [
         {
-           inlineData: {
-             data: imageBase64.split(',')[1],
-             mimeType: "image/jpeg"
-           }
+          inlineData: {
+            data: imageBase64.split(',')[1],
+            mimeType: "image/jpeg"
+          }
         },
         { text: prompt }
       ];
@@ -126,9 +129,9 @@ ${textInput || "ランダムな数学の問題"}`;
     } else {
       result = await model.generateContent(prompt);
     }
-    
+
     const text = result.response.text();
-    
+
     // 生成した解説をフロントエンドに返す
     return res.status(200).json({ explanation: text });
 
