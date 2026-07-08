@@ -4,7 +4,7 @@ import MathInputArea from './components/MathInputArea';
 import QuestionCreationInput from './components/QuestionCreationInput';
 import ExplanationArea from './components/ExplanationArea';
 import AdBanner from './components/AdBanner';
-import { generateMathExplanation, generateMathQuestion, fetchAvailableModels } from './utils/gemini';
+import { generateMathExplanation, generateMathQuestion } from './utils/gemini';
 import { BookOpen, Sparkles, LogIn } from 'lucide-react';
 import 'katex/dist/katex.min.css';
 import './App.css';
@@ -15,10 +15,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 
 function App() {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
   const [appMode, setAppMode] = useState('question'); // 'explain' or 'question'
-  const [availableModels, setAvailableModels] = useState([]);
-  const [selectedModel, setSelectedModel] = useState('');
   const [resultText, setResultText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -88,34 +85,6 @@ function App() {
     }
   };
 
-  // APIキーが設定されたらモデル一覧を取得する
-  useEffect(() => {
-    const getModels = async () => {
-      if (!apiKey) return;
-      const models = await fetchAvailableModels(apiKey);
-      setAvailableModels(models);
-      
-      if (models.length > 0) {
-        if (!selectedModel || !models.includes(selectedModel)) {
-          const defaultModel = models.find(m => m.includes('1.5-pro')) || models[0];
-          setSelectedModel(defaultModel);
-          localStorage.setItem('math_explainer_selected_model', defaultModel);
-        }
-      }
-    };
-    getModels();
-  }, [apiKey]);
-
-  const handleSetApiKey = (key) => {
-    setApiKey(key);
-    localStorage.setItem('gemini_api_key', key);
-  };
-
-  const handleSetSelectedModel = (model) => {
-    setSelectedModel(model);
-    localStorage.setItem('math_explainer_selected_model', model);
-  };
-
   const handleGenerateExplanation = async (text, imageBase64) => {
     if (!text && !imageBase64) {
       setError('テキストを入力するか、画像をアップロードしてください。');
@@ -128,7 +97,7 @@ function App() {
 
     try {
       // APIキーはサーバー側で管理するため不要になりました
-      const result = await generateMathExplanation(null, selectedModel, text, imageBase64);
+      const result = await generateMathExplanation(text, imageBase64);
       setResultText(result);
     } catch (err) {
       setError(err.message || '解説の生成に失敗しました。');
@@ -143,7 +112,7 @@ function App() {
     setResultText('');
 
     try {
-      const result = await generateMathQuestion(null, selectedModel, text);
+      const result = await generateMathQuestion(text);
       setResultText(result);
     } catch (err) {
       setError(err.message || '問題の生成に失敗しました。');
@@ -202,11 +171,6 @@ function App() {
   return (
     <div className="app-container">
       <Header 
-        apiKey={apiKey} 
-        setApiKey={handleSetApiKey} 
-        availableModels={availableModels}
-        selectedModel={selectedModel}
-        setSelectedModel={handleSetSelectedModel}
         user={user} 
         tickets={tickets} 
         onLogout={logOut} 
