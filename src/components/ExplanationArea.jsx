@@ -6,6 +6,7 @@ import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkMathPlugin from 'remark-math';
 import remarkDocx from 'remark-docx';
+import { latexPlugin } from 'remark-docx/plugins/latex';
 import { saveAs } from 'file-saver';
 import { Download, BookOpen, AlertCircle, FileText } from 'lucide-react';
 
@@ -32,10 +33,11 @@ export default function ExplanationArea({ explanation, error, title = 'AI 解説
       const processor = unified()
         .use(remarkParse)
         .use(remarkMathPlugin)
-        .use(remarkDocx, { output: 'buffer' });
+        .use(remarkDocx, { plugins: [latexPlugin()] });
       
       const file = await processor.process(explanation);
-      const blob = new Blob([file.result], { 
+      const arrayBuffer = await file.result;
+      const blob = new Blob([arrayBuffer], { 
         type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
       });
       
