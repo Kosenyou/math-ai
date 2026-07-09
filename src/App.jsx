@@ -229,8 +229,6 @@ function App() {
           <strong>免責事項：</strong>当サイトはAI（Google Gemini等）を用いて生成された解答や解説の正確性、完全性、有用性について、一切の保証を行いません。学習の参考としてのみご利用いただき、自己責任において判断してください。
         </div>
         
-        <AdBanner />
-        
         <div className="no-print">
           {appMode === 'explain' ? (
             <MathInputArea onSubmit={handleGenerateExplanation} isLoading={isLoading} />
@@ -246,8 +244,6 @@ function App() {
           error={error} 
           title={appMode === 'explain' ? 'AI 解説' : 'AI 生成問題と解説'} 
         />
-        
-        <AdBanner />
       </main>
       
       <footer style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '1rem 0', fontSize: '0.875rem' }}>
