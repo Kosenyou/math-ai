@@ -19,7 +19,6 @@ export default function QuestionCreationInput({ onSubmit, isLoading }) {
         作成したい問題のテーマや難易度、条件を自由に入力してください。
         <br />
         例: 「高校数学の微分積分で、実生活に関連する応用問題を作って。難易度は標準レベル。」
-        例: 「この問題と似たような類題を出題して。」
       </p>
 
       <textarea
