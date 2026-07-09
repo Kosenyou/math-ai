@@ -61,7 +61,7 @@ export default async function handler(req, res) {
     
     // session作成時に渡したユーザーIDとチケット枚数を取得
     const uid = session.client_reference_id;
-    const ticketsToAdd = parseInt(session.metadata.tickets || '0', 10);
+    const ticketsToAdd = parseInt(session.metadata?.tickets || '0', 10);
 
     if (uid && ticketsToAdd > 0) {
       try {

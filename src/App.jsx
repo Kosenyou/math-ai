@@ -5,6 +5,10 @@ import QuestionCreationInput from './components/QuestionCreationInput';
 import ExplanationArea from './components/ExplanationArea';
 import AdBanner from './components/AdBanner';
 import PricingModal from './components/PricingModal';
+import LegalModal from './components/LegalModal';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsOfService from './components/TermsOfService';
+import SpecifiedCommercialTransactions from './components/SpecifiedCommercialTransactions';
 import { generateMathExplanation, generateMathQuestion } from './utils/gemini';
 import { BookOpen, Sparkles, LogIn } from 'lucide-react';
 import 'katex/dist/katex.min.css';
@@ -21,6 +25,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const [legalModalType, setLegalModalType] = useState(null); // 'privacy' | 'terms' | 'sctl' | null
 
   // Auth & User State
   const [user, setUser] = useState(null);
@@ -149,7 +154,7 @@ function App() {
           <div className="glass-panel" style={{ textAlign: 'center', padding: '3rem 2rem', maxWidth: '400px', width: '100%' }}>
             <div style={{ marginBottom: '2rem' }}>
               <Sparkles size={48} color="var(--primary-color)" style={{ margin: '0 auto', marginBottom: '1rem' }} />
-              <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>AI 数学アシスタント</h2>
+              <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>Math AI</h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
                 分からない数式をAIがステップバイステップで解説。<br/>
                 ログインすると初回限定で無料チケットが3枚もらえます！
@@ -210,6 +215,20 @@ function App() {
       </div>
 
       <main className="main-content">
+        <div style={{
+          backgroundColor: 'rgba(255, 193, 7, 0.1)',
+          borderLeft: '4px solid #ffc107',
+          padding: '12px 16px',
+          marginBottom: '20px',
+          fontSize: '0.85rem',
+          color: 'var(--text-secondary)',
+          borderRadius: '4px',
+          lineHeight: '1.5',
+          textAlign: 'left'
+        }} className="no-print">
+          <strong>免責事項：</strong>当サイトはAI（Google Gemini等）を用いて生成された解答や解説の正確性、完全性、有用性について、一切の保証を行いません。学習の参考としてのみご利用いただき、自己責任において判断してください。
+        </div>
+        
         <AdBanner />
         
         <div className="no-print">
@@ -232,7 +251,29 @@ function App() {
       </main>
       
       <footer style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '1rem 0', fontSize: '0.875rem' }}>
-        <p>Built with React, Vite, and Gemini API</p>
+        <p style={{ marginBottom: '8px' }}>Built with React, Vite, and Gemini API</p>
+        <div>
+          <button 
+            onClick={() => setLegalModalType('terms')} 
+            style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', fontSize: '0.875rem', padding: '0 8px' }}
+          >
+            利用規約
+          </button>
+          |
+          <button 
+            onClick={() => setLegalModalType('privacy')} 
+            style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', fontSize: '0.875rem', padding: '0 8px' }}
+          >
+            プライバシーポリシー
+          </button>
+          |
+          <button 
+            onClick={() => setLegalModalType('sctl')} 
+            style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', fontSize: '0.875rem', padding: '0 8px' }}
+          >
+            特定商取引法に基づく表記
+          </button>
+        </div>
       </footer>
 
       {/* Pricing Modal */}
@@ -241,6 +282,22 @@ function App() {
           user={user} 
           onClose={() => setIsPricingModalOpen(false)} 
         />
+      )}
+
+      {/* Legal Modal */}
+      {legalModalType && (
+        <LegalModal 
+          title={
+            legalModalType === 'privacy' ? 'プライバシーポリシー' : 
+            legalModalType === 'terms' ? '利用規約' : 
+            '特定商取引法に基づく表記'
+          }
+          onClose={() => setLegalModalType(null)}
+        >
+          {legalModalType === 'privacy' && <PrivacyPolicy />}
+          {legalModalType === 'terms' && <TermsOfService />}
+          {legalModalType === 'sctl' && <SpecifiedCommercialTransactions />}
+        </LegalModal>
       )}
     </div>
   );
