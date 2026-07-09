@@ -96,12 +96,12 @@ export default function PricingModal({ onClose, user }) {
           padding: '20px',
           marginBottom: '25px'
         }}>
-          <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', color: 'var(--text-primary)' }}>100枚セット</h3>
+          <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', color: 'var(--text-primary)' }}>10枚セット</h3>
           <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-color)', marginBottom: '15px' }}>
             ¥200 <span style={{ fontSize: '1rem', color: 'var(--text-secondary)', fontWeight: 'normal' }}>(税込)</span>
           </div>
           <ul style={{ textAlign: 'left', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px', paddingLeft: '20px' }}>
-            <li style={{ marginBottom: '8px' }}>1枚あたりたったの2円！</li>
+            <li style={{ marginBottom: '8px' }}>1回あたり20円で本格的な解説・作問が可能</li>
             <li style={{ marginBottom: '8px' }}>いつでも解説・作問が依頼可能</li>
             <li>有効期限はありません</li>
           </ul>

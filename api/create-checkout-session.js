@@ -38,8 +38,8 @@ export default async function handler(req, res) {
           price_data: {
             currency: 'jpy',
             product_data: {
-              name: '100チケットセット',
-              description: 'AI解説・作問機能を利用するためのチケット100枚分です。',
+              name: '10チケットセット',
+              description: 'AI解説・作問機能を利用するためのチケット10枚分です。',
             },
             unit_amount: 200, // 200円
           },
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
       success_url: `${origin}/?success=true`, // 成功時の戻り先URL
       cancel_url: `${origin}/?canceled=true`, // キャンセル時の戻り先URL
       metadata: {
-        tickets: '100' // フックで処理する際に何枚追加するかメタデータに記録
+        tickets: '10' // フックで処理する際に何枚追加するかメタデータに記録
       }
     });
 
