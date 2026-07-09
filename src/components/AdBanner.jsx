@@ -7,9 +7,7 @@ export default function AdBanner() {
     // Reactの再レンダリングでスクリプトが複数回追加されるのを防ぐ
     if (adRef.current && adRef.current.children.length === 0) {
       const script = document.createElement('script');
-      script.async = true;
-      script.src = "https://adm.shinobi.jp/st/auto.js";
-      script.setAttribute("data-admax-id", "80d47ec9c91824a96c2c7f8351beea5f");
+      script.src = "https://adm.shinobi.jp/s/d48572e571fac0fa3e5efa1522fc0554";
       adRef.current.appendChild(script);
     }
   }, []);
