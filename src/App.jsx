@@ -214,12 +214,11 @@ function App() {
         </button>
       </div>
 
-      <main className="main-content">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
         <div style={{
           backgroundColor: 'rgba(255, 193, 7, 0.1)',
           borderLeft: '4px solid #ffc107',
           padding: '12px 16px',
-          marginBottom: '20px',
           fontSize: '0.85rem',
           color: 'var(--text-secondary)',
           borderRadius: '4px',
@@ -229,7 +228,8 @@ function App() {
           <strong>免責事項：</strong>当サイトはAI（Google Gemini等）を用いて生成された解答や解説の正確性、完全性、有用性について、一切の保証を行いません。学習の参考としてのみご利用いただき、自己責任において判断してください。
         </div>
         
-        <div className="no-print">
+        <main className="main-content">
+          <div className="no-print">
           {appMode === 'explain' ? (
             <MathInputArea onSubmit={handleGenerateExplanation} isLoading={isLoading} />
           ) : (
@@ -244,7 +244,10 @@ function App() {
           error={error} 
           title={appMode === 'explain' ? 'AI 解説' : 'AI 生成問題と解説'} 
         />
-      </main>
+        </main>
+
+        <AdBanner />
+      </div>
       
       <footer style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '1rem 0', fontSize: '0.875rem' }}>
         <p style={{ marginBottom: '8px' }}>Built with React, Vite, and Gemini API</p>
