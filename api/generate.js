@@ -40,8 +40,8 @@ export default async function handler(req, res) {
 
   // 動作確認（デバッグ）用のエンドポイント
   if (req.method === 'GET') {
-    return res.status(200).json({ 
-      status: 'ok', 
+    return res.status(200).json({
+      status: 'ok',
       firebaseAdmin: typeof admin.apps,
       initError: initError || 'none'
     });
@@ -94,7 +94,7 @@ export default async function handler(req, res) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: modelName || "gemini-3.5-flash" });
+    const model = genAI.getGenerativeModel({ model: modelName || "gemini-3.1-flash-lite" });
 
     let prompt = "";
     if (mode === 'explanation') {
