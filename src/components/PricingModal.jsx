@@ -121,9 +121,7 @@ export default function PricingModal({ onClose, user }) {
           </button>
         </div>
 
-        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-          ※これはテスト環境です。実際のクレジットカードでは決済されません。
-        </p>
+
       </div>
     </div>
   );

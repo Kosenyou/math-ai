@@ -51,6 +51,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  let uid = null;
+  let ticketConsumed = false;
+
   try {
     if (!admin.apps.length) {
       throw new Error(`サーバー側のFirebase設定が完了していません。詳細: ${initError || '設定が空です'}`);
@@ -66,7 +69,7 @@ export default async function handler(req, res) {
 
     const idToken = authHeader.split('Bearer ')[1];
     const decodedToken = await admin.auth().verifyIdToken(idToken);
-    const uid = decodedToken.uid;
+    uid = decodedToken.uid;
 
     // 2. チケット残高の確認
     const userRef = db.collection('users').doc(uid);
@@ -85,6 +88,7 @@ export default async function handler(req, res) {
     await userRef.update({
       tickets: admin.firestore.FieldValue.increment(-1)
     });
+    ticketConsumed = true;
 
     // 4. サーバー裏側でGemini APIを叩く
     const { textInput, imageBase64, mode, modelName } = req.body;
@@ -154,6 +158,19 @@ ${textInput || "ランダムな数学の問題"}`;
 
   } catch (error) {
     console.error('API Error:', error);
+    
+    // エラー発生時にチケットを返還する
+    if (ticketConsumed && uid) {
+      try {
+        await admin.firestore().collection('users').doc(uid).update({
+          tickets: admin.firestore.FieldValue.increment(1)
+        });
+        console.log(`Ticket refunded for user ${uid} due to API error.`);
+      } catch (refundError) {
+        console.error('Failed to refund ticket:', refundError);
+      }
+    }
+
     return res.status(500).json({ error: error.message });
   }
 }
