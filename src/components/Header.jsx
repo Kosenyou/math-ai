@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { KeyRound, Check, Calculator, LogOut, Ticket, PlusCircle } from 'lucide-react';
+import { KeyRound, Check, Calculator, LogOut, Ticket, PlusCircle, Trash2 } from 'lucide-react';
 
-export default function Header({ availableModels, selectedModel, setSelectedModel, user, tickets, onLogout, onAddTickets }) {
+export default function Header({ availableModels, selectedModel, setSelectedModel, user, tickets, onLogout, onAddTickets, onDeleteAccount }) {
   return (
     <header className="app-header no-print">
       <div className="logo">
@@ -36,6 +36,13 @@ export default function Header({ availableModels, selectedModel, setSelectedMode
                 title="ログアウト"
               >
                 <LogOut size={18} />
+              </button>
+              <button
+                onClick={onDeleteAccount}
+                style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', marginLeft: '4px' }}
+                title="アカウント削除（退会）"
+              >
+                <Trash2 size={18} />
               </button>
             </div>
           </div>

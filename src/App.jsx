@@ -15,7 +15,7 @@ import 'katex/dist/katex.min.css';
 import './App.css';
 
 // Firebase imports
-import { auth, signInWithGoogle, logOut, db } from './utils/firebase';
+import { auth, signInWithGoogle, logOut, deleteAccount, db } from './utils/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot, updateDoc, increment } from 'firebase/firestore';
 
@@ -94,6 +94,22 @@ function App() {
 
   const handleAddTestTickets = () => {
     setIsPricingModalOpen(true);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (window.confirm('本当にアカウントを退会（削除）しますか？\n※購入したチケットやデータはすべて消去され、元に戻せません。')) {
+      try {
+        await deleteAccount();
+        alert('アカウントを削除しました。');
+      } catch (err) {
+        if (err.code === 'auth/requires-recent-login') {
+          alert('セキュリティのため、一度ログアウトして再ログインしてからアカウント削除を実行してください。');
+          await logOut();
+        } else {
+          alert(`エラーが発生しました: ${err.message}`);
+        }
+      }
+    }
   };
 
   const handleGenerateExplanation = async (text, imageBase64) => {
@@ -186,6 +202,7 @@ function App() {
         tickets={tickets} 
         onLogout={logOut} 
         onAddTickets={handleAddTestTickets}
+        onDeleteAccount={handleDeleteAccount}
       />
       
       {/* モード切り替えタブ */}

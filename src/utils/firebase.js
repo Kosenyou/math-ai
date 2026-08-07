@@ -1,7 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
-
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, deleteUser } from 'firebase/auth';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, deleteDoc } from 'firebase/firestore';
 const firebaseConfig = {
   apiKey: "AIzaSyCkfDJIrkAj88Mv6_wyRk1cHrUFLxmxEsw",
   authDomain: "math-ai-5aa1d.firebaseapp.com",
@@ -45,4 +44,21 @@ export const signInWithGoogle = async () => {
 // ログアウト処理
 export const logOut = async () => {
   await signOut(auth);
+};
+
+// アカウント削除処理
+export const deleteAccount = async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  try {
+    // Firestoreからユーザーデータを削除
+    await deleteDoc(doc(db, 'users', user.uid));
+    
+    // Authからユーザーを削除
+    await deleteUser(user);
+  } catch (error) {
+    console.error("Account deletion failed", error);
+    throw error;
+  }
 };
