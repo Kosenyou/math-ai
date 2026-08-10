@@ -11,7 +11,8 @@ export default function PricingModal({ onClose, user }) {
 
   const handlePurchase = async () => {
     if (!user) {
-      alert('【PayPay審査用の一時措置】\n本来はGoogleログインが必要ですが、審査確認のため一時的にそのまま決済画面に進めるようにしています。');
+      alert('チケットを購入するには、まずGoogleでログインしてください。');
+      return;
     }
     setIsLoading(true);
 
@@ -23,8 +24,8 @@ export default function PricingModal({ onClose, user }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          uid: user ? user.uid : 'guest_review',
-          email: user ? user.email : 'guest@example.com'
+          uid: user.uid,
+          email: user.email
         }),
       });
 
