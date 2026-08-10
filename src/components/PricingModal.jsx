@@ -10,7 +10,10 @@ export default function PricingModal({ onClose, user }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePurchase = async () => {
-    if (!user) return;
+    if (!user) {
+      alert('チケットを購入するには、まずGoogleでログインしてください。');
+      return;
+    }
     setIsLoading(true);
 
     try {

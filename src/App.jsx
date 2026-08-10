@@ -162,11 +162,65 @@ function App() {
     );
   }
 
+  const footerAndModals = (
+    <>
+      <footer style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '1rem 0', fontSize: '0.875rem', marginTop: 'auto' }}>
+        <p style={{ marginBottom: '8px' }}>Built with React, Vite, and Gemini API</p>
+        <div>
+          <button 
+            onClick={() => setLegalModalType('terms')} 
+            style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', fontSize: '0.875rem', padding: '0 8px' }}
+          >
+            利用規約
+          </button>
+          |
+          <button 
+            onClick={() => setLegalModalType('privacy')} 
+            style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', fontSize: '0.875rem', padding: '0 8px' }}
+          >
+            プライバシーポリシー
+          </button>
+          |
+          <button 
+            onClick={() => setLegalModalType('sctl')} 
+            style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', fontSize: '0.875rem', padding: '0 8px' }}
+          >
+            特定商取引法に基づく表記
+          </button>
+        </div>
+      </footer>
+
+      {/* Pricing Modal (Always allow opening, handled inside if user is missing) */}
+      {isPricingModalOpen && (
+        <PricingModal 
+          user={user} 
+          onClose={() => setIsPricingModalOpen(false)} 
+        />
+      )}
+
+      {/* Legal Modal */}
+      {legalModalType && (
+        <LegalModal 
+          title={
+            legalModalType === 'privacy' ? 'プライバシーポリシー' : 
+            legalModalType === 'terms' ? '利用規約' : 
+            '特定商取引法に基づく表記'
+          }
+          onClose={() => setLegalModalType(null)}
+        >
+          {legalModalType === 'privacy' && <PrivacyPolicy />}
+          {legalModalType === 'terms' && <TermsOfService />}
+          {legalModalType === 'sctl' && <SpecifiedCommercialTransactions />}
+        </LegalModal>
+      )}
+    </>
+  );
+
   if (!user) {
     return (
-      <div className="app-container">
+      <div className="app-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <Header />
-        <main className="main-content" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <main className="main-content" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem 1rem' }}>
           <div className="glass-panel" style={{ textAlign: 'center', padding: '3rem 2rem', maxWidth: '400px', width: '100%' }}>
             <div style={{ marginBottom: '2rem' }}>
               <Sparkles size={48} color="var(--primary-color)" style={{ margin: '0 auto', marginBottom: '1rem' }} />
@@ -184,13 +238,20 @@ function App() {
             <button 
               onClick={handleLogin}
               className="btn-primary" 
-              style={{ width: '100%', justifyContent: 'center', padding: '0.8rem' }}
+              style={{ width: '100%', justifyContent: 'center', padding: '0.8rem', marginBottom: '1rem' }}
             >
               <LogIn size={20} style={{ marginRight: '8px' }} />
               Googleでログインして始める
             </button>
+            <button 
+              onClick={() => setIsPricingModalOpen(true)}
+              style={{ background: 'transparent', border: '1px solid var(--accent-color)', color: 'var(--text-primary)', width: '100%', padding: '0.8rem', borderRadius: '8px', cursor: 'pointer', fontSize: '0.95rem' }}
+            >
+              料金・チケットについて見る
+            </button>
           </div>
         </main>
+        {footerAndModals}
       </div>
     );
   }
@@ -265,56 +326,7 @@ function App() {
 
         <AdBanner />
       </div>
-      
-      <footer style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '1rem 0', fontSize: '0.875rem' }}>
-        <p style={{ marginBottom: '8px' }}>Built with React, Vite, and Gemini API</p>
-        <div>
-          <button 
-            onClick={() => setLegalModalType('terms')} 
-            style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', fontSize: '0.875rem', padding: '0 8px' }}
-          >
-            利用規約
-          </button>
-          |
-          <button 
-            onClick={() => setLegalModalType('privacy')} 
-            style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', fontSize: '0.875rem', padding: '0 8px' }}
-          >
-            プライバシーポリシー
-          </button>
-          |
-          <button 
-            onClick={() => setLegalModalType('sctl')} 
-            style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', fontSize: '0.875rem', padding: '0 8px' }}
-          >
-            特定商取引法に基づく表記
-          </button>
-        </div>
-      </footer>
-
-      {/* Pricing Modal */}
-      {isPricingModalOpen && (
-        <PricingModal 
-          user={user} 
-          onClose={() => setIsPricingModalOpen(false)} 
-        />
-      )}
-
-      {/* Legal Modal */}
-      {legalModalType && (
-        <LegalModal 
-          title={
-            legalModalType === 'privacy' ? 'プライバシーポリシー' : 
-            legalModalType === 'terms' ? '利用規約' : 
-            '特定商取引法に基づく表記'
-          }
-          onClose={() => setLegalModalType(null)}
-        >
-          {legalModalType === 'privacy' && <PrivacyPolicy />}
-          {legalModalType === 'terms' && <TermsOfService />}
-          {legalModalType === 'sctl' && <SpecifiedCommercialTransactions />}
-        </LegalModal>
-      )}
+      {footerAndModals}
     </div>
   );
 }
