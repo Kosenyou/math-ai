@@ -30,7 +30,7 @@ export default async function handler(req, res) {
 
     // Checkout Sessionの作成
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+      payment_method_types: ['card', 'paypay'],
       customer_email: email, // ユーザーのメールアドレスを事前に入力
       client_reference_id: uid, // 決済完了後に誰が買ったか特定するためのID
       line_items: [
