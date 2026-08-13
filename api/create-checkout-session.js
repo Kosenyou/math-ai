@@ -29,7 +29,7 @@ export default async function handler(req, res) {
 
     // Checkout Sessionの作成
     const sessionConfig = {
-      payment_method_types: ['card', 'paypay'],
+      payment_method_types: ['card'],
       client_reference_id: uid, // 決済完了後に誰が買ったか特定するためのID
       line_items: [
         {
