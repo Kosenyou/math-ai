@@ -23,15 +23,13 @@ export default async function handler(req, res) {
     });
 
     // 実際のアプリではここで「URL」をVercelの環境変数から動的に取得します
-    // 今回はテスト用のためハードコードまたは簡易的な判定を使用します
     const protocol = req.headers['x-forwarded-proto'] || 'https';
     const host = req.headers['x-forwarded-host'] || req.headers.host;
     const origin = `${protocol}://${host}`;
 
     // Checkout Sessionの作成
-    const session = await stripe.checkout.sessions.create({
+    const sessionConfig = {
       payment_method_types: ['card', 'paypay'],
-      customer_email: email, // ユーザーのメールアドレスを事前に入力
       client_reference_id: uid, // 決済完了後に誰が買ったか特定するためのID
       line_items: [
         {
@@ -52,7 +50,13 @@ export default async function handler(req, res) {
       metadata: {
         tickets: '10' // フックで処理する際に何枚追加するかメタデータに記録
       }
-    });
+    };
+
+    if (email) {
+      sessionConfig.customer_email = email;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     res.status(200).json({ sessionId: session.id, url: session.url });
   } catch (err) {
