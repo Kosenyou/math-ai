@@ -16,7 +16,7 @@ import './App.css';
 
 // Firebase imports
 import { auth, signInWithGoogle, logOut, deleteAccount, db } from './utils/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signInAnonymously, linkWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { doc, onSnapshot, updateDoc, increment } from 'firebase/firestore';
 
 function App() {
@@ -34,11 +34,20 @@ function App() {
 
   // 認証状態の監視
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      if (!currentUser) {
-        setTickets(0);
-        setIsAuthLoading(false);
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+      } else {
+        // 未ログイン時は自動的に匿名ユーザーを作成する
+        try {
+          await signInAnonymously(auth);
+          // signInAnonymouslyが成功すると、再びonAuthStateChangedが呼ばれ、
+          // currentUser（isAnonymous: true）が入った状態でここに戻ってきます。
+        } catch (error) {
+          console.error("匿名ログインに失敗しました:", error);
+          setError("初期設定（ゲストログイン）に失敗しました。");
+          setIsAuthLoading(false);
+        }
       }
     });
 
@@ -55,13 +64,14 @@ function App() {
         if (docSnap.exists()) {
           setTickets(docSnap.data().tickets || 0);
         } else {
-          // もしユーザーのデータが存在しない場合（データベース作成前にログインしてしまった場合など）
+          // もしユーザーのデータが存在しない場合（新規登録またはゲスト）
           // ここで初期データを作成する
           try {
             const { setDoc } = await import('firebase/firestore');
             await setDoc(userRef, {
-              email: user.email,
-              displayName: user.displayName,
+              email: user.email || null,
+              displayName: user.displayName || 'ゲストユーザー',
+              isAnonymous: user.isAnonymous,
               tickets: 3,
               createdAt: new Date()
             });
@@ -86,7 +96,33 @@ function App() {
   const handleLogin = async () => {
     try {
       setError('');
-      await signInWithGoogle();
+      // 現在がゲストユーザーの場合、Googleアカウントをリンク（引き継ぎ）する
+      if (user && user.isAnonymous) {
+        const provider = new GoogleAuthProvider();
+        try {
+          await linkWithPopup(user, provider);
+          alert('Googleアカウントに引き継ぎました！');
+          // 引き継ぎ成功後、DBの情報を更新する（名前やメールアドレス）
+          const { updateDoc } = await import('firebase/firestore');
+          const userRef = doc(db, 'users', user.uid);
+          await updateDoc(userRef, {
+            email: auth.currentUser.email,
+            displayName: auth.currentUser.displayName,
+            isAnonymous: false
+          });
+        } catch (linkError) {
+          // 既に別のアカウントが紐づいている場合などのエラーハンドリング
+          if (linkError.code === 'auth/credential-already-in-use') {
+             alert('このGoogleアカウントは既に別のアカウントとして登録されています。現在のチケット等を引き継ぐことはできません。');
+          } else {
+             console.error("Link error:", linkError);
+             alert('アカウントの引き継ぎに失敗しました。');
+          }
+        }
+      } else {
+        // 完全に未ログイン（通常ありえないが念のため）
+        await signInWithGoogle();
+      }
     } catch (err) {
       setError(`ログイン処理エラー: ${err.message}`);
     }
@@ -163,34 +199,10 @@ function App() {
   }
 
   if (!user) {
+    // 匿名ログインへの移行が完了するまで（一瞬）はローディングを表示
     return (
-      <div className="app-container">
-        <Header />
-        <main className="main-content" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-          <div className="glass-panel" style={{ textAlign: 'center', padding: '3rem 2rem', maxWidth: '400px', width: '100%' }}>
-            <div style={{ marginBottom: '2rem' }}>
-              <Sparkles size={48} color="var(--primary-color)" style={{ margin: '0 auto', marginBottom: '1rem' }} />
-              <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>Math AI</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                分からない数式をAIがステップバイステップで解説。<br/>
-                ログインすると初回限定で無料チケットが3枚もらえます！
-              </p>
-            </div>
-            {error && (
-              <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '10px', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                {error}
-              </div>
-            )}
-            <button 
-              onClick={handleLogin}
-              className="btn-primary" 
-              style={{ width: '100%', justifyContent: 'center', padding: '0.8rem' }}
-            >
-              <LogIn size={20} style={{ marginRight: '8px' }} />
-              Googleでログインして始める
-            </button>
-          </div>
-        </main>
+      <div className="app-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <p style={{ color: 'var(--text-secondary)' }}>準備中...</p>
       </div>
     );
   }
@@ -200,6 +212,7 @@ function App() {
       <Header 
         user={user} 
         tickets={tickets} 
+        onLogin={handleLogin}
         onLogout={logOut} 
         onAddTickets={handleAddTestTickets}
         onDeleteAccount={handleDeleteAccount}

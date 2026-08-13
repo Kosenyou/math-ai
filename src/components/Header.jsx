@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { KeyRound, Check, Calculator, LogOut, Ticket, PlusCircle, Trash2 } from 'lucide-react';
 
-export default function Header({ availableModels, selectedModel, setSelectedModel, user, tickets, onLogout, onAddTickets, onDeleteAccount }) {
+export default function Header({ availableModels, selectedModel, setSelectedModel, user, tickets, onLogin, onLogout, onAddTickets, onDeleteAccount }) {
   return (
     <header className="app-header no-print">
       <div className="logo">
@@ -25,25 +25,37 @@ export default function Header({ availableModels, selectedModel, setSelectedMode
             </div>
             <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.2)' }}></div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <img
-                src={user.photoURL || `https://ui-avatars.com/api/?name=${user.email}&background=random`}
-                alt="User"
-                style={{ width: '28px', height: '28px', borderRadius: '50%' }}
-              />
-              <button
-                onClick={onLogout}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                title="ログアウト"
-              >
-                <LogOut size={18} />
-              </button>
-              <button
-                onClick={onDeleteAccount}
-                style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', marginLeft: '4px' }}
-                title="アカウント削除（退会）"
-              >
-                <Trash2 size={18} />
-              </button>
+              {user.isAnonymous ? (
+                <button 
+                  onClick={onLogin}
+                  className="btn-primary"
+                  style={{ padding: '4px 12px', fontSize: '0.85rem' }}
+                >
+                  本登録して引き継ぐ
+                </button>
+              ) : (
+                <>
+                  <img
+                    src={user.photoURL || `https://ui-avatars.com/api/?name=${user.email}&background=random`}
+                    alt="User"
+                    style={{ width: '28px', height: '28px', borderRadius: '50%' }}
+                  />
+                  <button
+                    onClick={onLogout}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                    title="ログアウト"
+                  >
+                    <LogOut size={18} />
+                  </button>
+                  <button
+                    onClick={onDeleteAccount}
+                    style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', marginLeft: '4px' }}
+                    title="アカウント削除（退会）"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}

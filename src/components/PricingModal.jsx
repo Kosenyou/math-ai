@@ -14,6 +14,10 @@ export default function PricingModal({ onClose, user }) {
       alert('チケットを購入するには、まずGoogleでログインしてください。');
       return;
     }
+    if (user.isAnonymous) {
+      alert('チケットを購入するには、本登録（Googleアカウントとの連携）が必要です。画面右上の「本登録して引き継ぐ」ボタンから登録を完了してください。');
+      return;
+    }
     setIsLoading(true);
 
     try {
