@@ -109,6 +109,24 @@ export default function PricingModal({ onClose, user }) {
             <li style={{ marginBottom: '8px' }}>いつでも解説・作問が依頼可能</li>
             <li>有効期限はありません</li>
           </ul>
+
+          {user && user.isAnonymous && (
+            <div style={{
+              backgroundColor: 'rgba(255, 193, 7, 0.1)',
+              borderLeft: '4px solid #ffc107',
+              padding: '12px',
+              fontSize: '0.85rem',
+              color: '#fbbf24',
+              borderRadius: '4px',
+              lineHeight: '1.5',
+              textAlign: 'left',
+              marginBottom: '20px'
+            }}>
+              <strong>⚠️ ゲスト購入時のご注意</strong><br/>
+              現在ゲストモードです。そのまま購入可能ですが、ブラウザの履歴消去や別端末からのアクセスにより<strong>チケットが消失するリスク</strong>があります。<br/>
+              購入後は必ず画面右上の「本登録して引き継ぐ」からアカウント連携をお願いします。
+            </div>
+          )}
           
           <button 
             className="btn-primary" 
