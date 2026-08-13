@@ -32,6 +32,15 @@ function App() {
   const [tickets, setTickets] = useState(0);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
+  // URLパラメーターで特定のモーダルを開く処理
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const legalParam = params.get('legal');
+    if (legalParam === 'sctl' || legalParam === 'terms' || legalParam === 'privacy') {
+      setLegalModalType(legalParam);
+    }
+  }, []);
+
   // 認証状態の監視
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
