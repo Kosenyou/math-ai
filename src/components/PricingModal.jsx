@@ -14,7 +14,10 @@ export default function PricingModal({ onClose, user }) {
       alert('チケットを購入するには、まずGoogleでログインしてください。');
       return;
     }
-    // 審査対応: ゲスト（匿名ユーザー）でも決済画面に進めるように許可します。
+    if (user.isAnonymous) {
+      alert('チケットを購入するには、本登録（Googleアカウントとの連携）が必要です。画面右上の「本登録して引き継ぐ」ボタンから登録を完了してください。');
+      return;
+    }
     setIsLoading(true);
 
     try {
@@ -109,24 +112,6 @@ export default function PricingModal({ onClose, user }) {
             <li style={{ marginBottom: '8px' }}>いつでも解説・作問が依頼可能</li>
             <li>有効期限はありません</li>
           </ul>
-
-          {user && user.isAnonymous && (
-            <div style={{
-              backgroundColor: 'rgba(255, 193, 7, 0.1)',
-              borderLeft: '4px solid #ffc107',
-              padding: '12px',
-              fontSize: '0.85rem',
-              color: '#fbbf24',
-              borderRadius: '4px',
-              lineHeight: '1.5',
-              textAlign: 'left',
-              marginBottom: '20px'
-            }}>
-              <strong>⚠️ ゲスト購入時のご注意</strong><br/>
-              現在ゲストモードです。そのまま購入可能ですが、ブラウザの履歴消去や別端末からのアクセスにより<strong>チケットが消失するリスク</strong>があります。<br/>
-              購入後は必ず画面右上の「本登録して引き継ぐ」からアカウント連携をお願いします。
-            </div>
-          )}
           
           <button 
             className="btn-primary" 
