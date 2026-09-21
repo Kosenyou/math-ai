@@ -1,17 +1,18 @@
 import Stripe from 'stripe';
-import admin from 'firebase-admin';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { buffer } from 'micro';
 
 // Initialize Firebase Admin (Only once)
-if (!admin.apps.length) {
+if (!getApps().length) {
   try {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
     if (serviceAccount.project_id) {
       if (serviceAccount.private_key) {
         serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
       }
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
+      initializeApp({
+        credential: cert(serviceAccount)
       });
     }
   } catch (error) {
@@ -65,12 +66,12 @@ export default async function handler(req, res) {
 
     if (uid && ticketsToAdd > 0) {
       try {
-        const db = admin.firestore();
+        const db = getFirestore();
         const userRef = db.collection('users').doc(uid);
         
         // チケット枚数を加算
         await userRef.update({
-          tickets: admin.firestore.FieldValue.increment(ticketsToAdd)
+          tickets: FieldValue.increment(ticketsToAdd)
         });
         
         console.log(`Successfully added ${ticketsToAdd} tickets to user ${uid}`);
@@ -84,3 +85,4 @@ export default async function handler(req, res) {
   // Stripeに成功を返す（返さないとリトライされ続ける）
   res.json({ received: true });
 }
+
